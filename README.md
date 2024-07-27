@@ -1,23 +1,18 @@
-# SteamFeed
-This is where she makes a mod.
+# Steam Activity Feed Viewer
 
-<img src="logo.png" width="150" alt="the mod's logo" />
+The Steam Feed mod lets you have an integrated button to view Steam's latest news into the game. This mod displays the recent activity and updates related to Geometry Dash directly on your main menu.
 
-*Update logo.png to change your mod's icon (please)*
+## About
 
-## Getting started
-We recommend heading over to [the getting started section on our docs](https://docs.geode-sdk.org/getting-started/) for useful info on what to do next.
+The Steam Activity Feed Mod is designed to fetch and display the latest news from Steam regarding Geometry Dash. It enhances the game's interface by adding a new button to the main menu, which, when clicked, shows the most recent updates and news. This feature allows players to view this information without leaving the game.
 
-## Build instructions
-For more info, see [our docs](https://docs.geode-sdk.org/getting-started/create-mod#build)
-```sh
-# Assuming you have the Geode CLI set up already
-geode build
-```
+## Credit
 
-# Resources
-* [Geode SDK Documentation](https://docs.geode-sdk.org/)
-* [Geode SDK Source Code](https://github.com/geode-sdk/geode/)
-* [Geode CLI](https://github.com/geode-sdk/cli)
-* [Bindings](https://github.com/geode-sdk/bindings/)
-* [Dev Tools](https://github.com/geode-sdk/DevTools)
+Special thanks to [OneBennyBoi](https://www.instagram.com/epix_obb_/) for the creative design of the button logo
+
+## Contact
+
+Feel free to check me out on my social media platforms:
+
+- YouTube: [Oculations](https://www.youtube.com/@Oculations)
+- Twitter/X: [@oculations](https://twitter.com/oculations)
