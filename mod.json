@@ -1,0 +1,26 @@
+{
+    "geode": "3.3.0",
+    "gd": {
+        "win": "2.206",
+        "android": "2.206",
+        "mac": "2.206",
+        "ios": "2.206"
+    },
+    "id": "oculations.steamfeed",
+    "name": "Steam Feed",
+    "version": "v1.0.0-beta.1",
+    "developer": "Oculations",
+    "description": "A mod to view Geometry Dash Steam News from the main menu",
+    "repository": "https://github.com/ThatGuyNick05/SteamFeed",
+    "resources": {
+        "sprites": [
+            "assets/steam_news_button.png"
+        ]
+    },
+    "links": {
+        "source": "https://github.com/ThatGuyNick05/SteamFeed"
+    },
+    "tags": [
+        "interface", "content"
+    ]
+}
