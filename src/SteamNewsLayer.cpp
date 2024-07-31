@@ -177,6 +177,7 @@ CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::stri
     // Calculate required height for content
     auto tempLabel = CCLabelBMFont::create(content.c_str(), "chatFont.fnt", width, kCCTextAlignmentLeft);
     height += tempLabel->getContentSize().height;
+    tempLabel->release();  // Release tempLabel after using it
 
     node->setContentSize(CCSizeMake(width, height));
 
@@ -290,6 +291,7 @@ std::string SteamNewsLayer::wrapText(const std::string& text, float maxWidth, co
     while (wordStream >> word) {
         auto tempLabel = CCLabelBMFont::create(word.c_str(), fontFile);
         float wordWidth = tempLabel->getContentSize().width;
+        tempLabel->release();  // Release tempLabel after using it
 
         if (lineWidth + wordWidth + buffer > maxWidth) {
             wrappedText << lineStream.str() << '\n';
