@@ -8,6 +8,7 @@
 #include <rapidjson/document.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/Event.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 
 class SteamNewsLayer : public FLAlertLayer, public cocos2d::extension::CCScrollViewDelegate {
 public:
@@ -34,6 +35,7 @@ private:
     std::string wrapText(const std::string& text, float maxWidth, const char* fontFile);
 
     geode::EventListener<geode::utils::web::WebTask> m_listener;
+    geode::LoadingSpinner* m_loadingSpinner;
 
     // Implement virtual function from CCScrollViewDelegate
     virtual void scrollViewDidScroll(cocos2d::extension::CCScrollView* view) override {}

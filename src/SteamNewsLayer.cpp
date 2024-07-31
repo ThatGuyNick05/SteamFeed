@@ -6,6 +6,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 
 using namespace cocos2d;
 using namespace rapidjson;
@@ -14,7 +15,7 @@ using namespace geode::prelude;
 bool SteamNewsLayer::init() {
     geode::log::info("Initializing SteamNewsLayer...");
 
-    if (!FLAlertLayer::init(180)) {  // Initialize with desired opacity
+    if (!FLAlertLayer::init(180)) {  // Initialized with needed opacity
         geode::log::error("Failed to initialize FLAlertLayer");
         return false;
     }
@@ -33,6 +34,10 @@ bool SteamNewsLayer::init() {
     else {
         geode::log::error("Failed to create close button");
     }
+
+    m_loadingSpinner = geode::LoadingSpinner::create(50.0f);
+    m_loadingSpinner->setPosition(this->getContentSize() / 2);
+    this->addChild(m_loadingSpinner);
 
     fetchNewsItems();
 
@@ -64,6 +69,8 @@ void SteamNewsLayer::fetchNewsItems() {
 
             auto newsItems = parseNewsItems(response);
             Loader::get()->queueInMainThread([this, newsItems]() {
+                this->removeChild(m_loadingSpinner, true); // Remove loading spinner
+
                 createScrollView(newsItems);
                 });
         }

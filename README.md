@@ -8,7 +8,7 @@ The Steam Activity Feed Mod is designed to fetch and display the latest news fro
 
 ## Credit
 
-Special thanks to [OneBennyBoi](https://www.instagram.com/epix_obb_/) for the creative design of the button logo
+Special thanks to [Alphalaneous](https://github.com/Alphalaneous) for the creative design of the button logo
 
 ## Contact
 
