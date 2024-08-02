@@ -12,7 +12,7 @@ Special thanks to [Alphalaneous](https://github.com/Alphalaneous) for the creati
 
 ## Contact
 
-Feel free to check me out on my social media platforms:
+Feel free to check me out on my social platforms:
 
 - YouTube: [Oculations](https://www.youtube.com/@Oculations)
 - Twitter/X: [@oculations](https://twitter.com/oculations)

@@ -1,5 +1,9 @@
 # Changelog
 
+## <cg>v1.0.0 [Beta 4]</c>
+* New mod logo design for cleaner look.
+* Added dates for each article
+
 ## <cg>v1.0.0 [Beta 3]</c>
 * Fixed incompatibilities with other mods.
 * Other crash fixes.

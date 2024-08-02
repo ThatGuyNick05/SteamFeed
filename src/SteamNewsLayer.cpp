@@ -7,6 +7,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <ctime>
 
 using namespace cocos2d;
 using namespace rapidjson;
@@ -69,7 +70,7 @@ void SteamNewsLayer::fetchNewsItems() {
 
             auto newsItems = parseNewsItems(response);
             Loader::get()->queueInMainThread([this, newsItems]() {
-                this->removeChild(m_loadingSpinner, true); // Remove loading spinner
+                this->removeChild(m_loadingSpinner, true); // Remove the loading spinner
 
                 createScrollView(newsItems);
                 });
@@ -96,7 +97,7 @@ std::vector<SteamNewsLayer::NewsItem> SteamNewsLayer::parseNewsItems(const std::
         for (auto& newsItem : newsItemsArray.GetArray()) {
             NewsItem item;
             std::string gid = newsItem["gid"].GetString();
-            // Skip articles based on gid
+            // Skip duplicate articles based on gid
             static const std::set<std::string> skipGids = {
                 "5410576585124650573", "2436926440562370340", "2284879949508460627",
                 "2163281492537211231", "2152021858901922963", "2152021858894636598",
@@ -114,6 +115,16 @@ std::vector<SteamNewsLayer::NewsItem> SteamNewsLayer::parseNewsItems(const std::
             item.gid = gid;
             item.title = newsItem["title"].GetString();
             item.content = removeUnwantedParts(newsItem["contents"].GetString(), gid);
+
+            // Convert date format to readable date
+            if (newsItem.HasMember("date")) {
+                time_t rawTime = newsItem["date"].GetInt64();
+                struct tm* timeInfo = localtime(&rawTime);
+                char buffer[11];
+                strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeInfo);
+                item.date = buffer;
+            }
+
             if (gid != "5410576585126249016") {
                 newsItems.push_back(item);
             }
@@ -134,24 +145,24 @@ void SteamNewsLayer::createScrollView(const std::vector<NewsItem>& newsItems) {
 
     float totalHeight = 0;
     for (const auto& item : newsItems) {
-        auto newsItem = createNewsItem(item.title, item.content);
+        auto newsItem = createNewsItem(item.title, item.content, item.date);
         if (newsItem) {
             size_t newlineCount = std::count(item.content.begin(), item.content.end(), '\n');
             float spacing;
             if (newlineCount >= 10) {
-                spacing = 125;
+                spacing = 80;
             }
             else if (newlineCount >= 5) {
-                spacing = 90;
+                spacing = 80;
             }
             else if (newlineCount >= 2) {
                 spacing = 40;
             }
             else {
-                spacing = 25;
+                spacing = 40;
             }
             newsItem->setPosition(ccp(40, totalHeight));
-            totalHeight += newsItem->getContentSize().height + spacing; // Adjust spacing between items
+            totalHeight += newsItem->getContentSize().height + spacing; // Adjustable spacing between items
             scrollLayer->addChild(newsItem);
         }
     }
@@ -168,23 +179,23 @@ void SteamNewsLayer::createScrollView(const std::vector<NewsItem>& newsItems) {
     this->addChild(scrollView);
 }
 
-CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::string& content) {
+CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::string& content, const std::string& date) {
     auto node = CCNode::create();
-    float width = CCDirector::sharedDirector()->getWinSize().width - 150; // Shifted right to avoid arrow overlap
-    float height = 50; // Base height
+    float width = CCDirector::sharedDirector()->getWinSize().width - 150; // To avoid the arrow overlap
+    float height = 50;
     float padding = 40;
 
-    // Calculate required height for content
+    // Calculate the needed height for content
     auto tempLabel = CCLabelBMFont::create(content.c_str(), "chatFont.fnt", width, kCCTextAlignmentLeft);
     height += tempLabel->getContentSize().height;
-    tempLabel->cleanup(); // Cleanup tempLabel
-    tempLabel->release();  // Release tempLabel
+    tempLabel->cleanup();
+    tempLabel->release();
 
     node->setContentSize(CCSizeMake(width, height));
 
     std::string wrappedTitle = wrapText(title, width - 2 * padding, "goldFont.fnt");
 
-    // Create the title label with a drop shadow
+    // Make title label with a drop shadow
     auto titleLabel = CCLabelBMFont::create(wrappedTitle.c_str(), "goldFont.fnt");
     if (titleLabel) {
         titleLabel->setAnchorPoint(ccp(0, 1));
@@ -193,20 +204,44 @@ CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::stri
 
         auto shadowTitleLabel = CCLabelBMFont::create(wrappedTitle.c_str(), "goldFont.fnt");
         shadowTitleLabel->setAnchorPoint(ccp(0, 1));
-        shadowTitleLabel->setPosition(ccp(padding + 2, node->getContentSize().height - padding - 2)); // Slightly offset for shadow effect
+        shadowTitleLabel->setPosition(ccp(padding + 2, node->getContentSize().height - padding - 2)); // For shadow effect
         shadowTitleLabel->setScale(0.8);
-        shadowTitleLabel->setColor(ccc3(0, 0, 0)); // Black color for shadow
-        shadowTitleLabel->setOpacity(100); // Transparent shadow
+        shadowTitleLabel->setColor(ccc3(0, 0, 0));
+        shadowTitleLabel->setOpacity(100);
 
-        node->addChild(shadowTitleLabel, -1); // Add shadow behind title
+        node->addChild(shadowTitleLabel, -1); // Move shadow behind title
         node->addChild(titleLabel);
     }
 
-    // Adjust content position based on the number of lines in the wrapped title
-    size_t titleLines = std::count(wrappedTitle.begin(), wrappedTitle.end(), '\n') + 1;
-    float contentYOffset = 40 + (titleLines - 1) * 20; // Adjust contentYOffset based on number of title lines
+    // Calculate vertical position for date based on title height
+    float titleHeight = titleLabel->getContentSize().height * titleLabel->getScale();
+    float datePositionY = node->getContentSize().height - padding - titleHeight - 10;
 
-    // Create the content label with a drop shadow
+    // Making the date label
+    auto dateLabel = CCLabelBMFont::create(date.c_str(), "bigFont.fnt");
+    if (dateLabel) {
+        dateLabel->setAnchorPoint(ccp(0, 1));
+        dateLabel->setPosition(ccp(padding, datePositionY)); // Position below the title
+        dateLabel->setScale(0.4);
+        dateLabel->setOpacity(128);
+
+        auto shadowDateLabel = CCLabelBMFont::create(date.c_str(), "bigFont.fnt");
+        shadowDateLabel->setAnchorPoint(ccp(0, 1));
+        shadowDateLabel->setPosition(ccp(padding + 2, datePositionY - 2)); // For shadow effect
+        shadowDateLabel->setScale(0.4);
+        shadowDateLabel->setColor(ccc3(0, 0, 0));
+        shadowDateLabel->setOpacity(100);
+
+        node->addChild(shadowDateLabel, -1); // Add shadow behind date
+        node->addChild(dateLabel);
+    }
+
+    // Adjust content position based on line count inside title and date
+    size_t titleLines = std::count(wrappedTitle.begin(), wrappedTitle.end(), '\n') + 1;
+    float contentYOffset = 80 + (titleLines - 1) * 20;
+    contentYOffset -= 20; // To maintain original position
+
+    // Make the Content label with drop shadow
     auto contentLabel = CCLabelBMFont::create(content.c_str(), "chatFont.fnt", width, kCCTextAlignmentLeft);
     if (contentLabel) {
         contentLabel->setAnchorPoint(ccp(0, 1));
@@ -215,12 +250,12 @@ CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::stri
 
         auto shadowContentLabel = CCLabelBMFont::create(content.c_str(), "chatFont.fnt", width, kCCTextAlignmentLeft);
         shadowContentLabel->setAnchorPoint(ccp(0, 1));
-        shadowContentLabel->setPosition(ccp(padding + 2, node->getContentSize().height - padding - contentYOffset - 2)); // Slightly offset for shadow effect
+        shadowContentLabel->setPosition(ccp(padding + 2, node->getContentSize().height - padding - contentYOffset - 2)); // For shadow effect
         shadowContentLabel->setScale(0.8);
-        shadowContentLabel->setColor(ccc3(0, 0, 0)); // Black color for shadow
-        shadowContentLabel->setOpacity(100); // Transparent shadow
+        shadowContentLabel->setColor(ccc3(0, 0, 0));
+        shadowContentLabel->setOpacity(100);
 
-        node->addChild(shadowContentLabel, -1); // Add shadow behind content
+        node->addChild(shadowContentLabel, -1); // Put shadow behind content
         node->addChild(contentLabel);
     }
 
@@ -231,7 +266,7 @@ std::string SteamNewsLayer::removeUnwantedParts(const std::string& text, const s
     std::string result = text;
     size_t pos;
 
-    // General unwanted parts removal
+    // The unwanted parts removal
     while ((pos = result.find("previewyoutube=")) != std::string::npos) {
         size_t endPos = result.find(" ", pos);
         result.erase(pos, endPos - pos + 1);
@@ -249,19 +284,19 @@ std::string SteamNewsLayer::removeUnwantedParts(const std::string& text, const s
     result.erase(std::remove(result.begin(), result.end(), '['), result.end());
     result.erase(std::remove(result.begin(), result.end(), ']'), result.end());
 
-    // Specific removal for article with gid "5218041989051270041"
+    // Remove article with gid "5218041989051270041"
     if (gid == "5218041989051270041") {
         result.erase(std::remove(result.begin(), result.end(), '/'), result.end());
     }
 
-    // Specific removal for article with gid "5124585319850001325"
+    // Remove article with gid "5124585319850001325"
     if (gid == "5124585319850001325") {
         while ((pos = result.find("[img]{STEAM_CLAN_IMAGE}/7432088/4fcada2e76dd5b2839d84e420a53315d8e078f98.png")) != std::string::npos) {
             result.erase(pos, 74);
         }
     }
 
-    // Replace full words containing "/Ru" or "/Rub" with "/RubRub"
+    // Replace words "/Ru" or "/Rub" with "/RubRub"
     std::istringstream stream(result);
     std::string word;
     std::string finalResult;
@@ -273,7 +308,7 @@ std::string SteamNewsLayer::removeUnwantedParts(const std::string& text, const s
         finalResult += word + " ";
     }
 
-    // Trim the trailing space
+    // Trimmed trailing space
     if (!finalResult.empty()) {
         finalResult.pop_back();
     }
@@ -287,13 +322,13 @@ std::string SteamNewsLayer::wrapText(const std::string& text, float maxWidth, co
     std::istringstream wordStream(text);
     std::string word;
     float lineWidth = 0;
-    float buffer = -100;  // Adding a buffer to allow for longer lines before wrapping
+    float buffer = -100;  // Buffer for longer lines before wrapping
 
     while (wordStream >> word) {
         auto tempLabel = CCLabelBMFont::create(word.c_str(), fontFile);
         float wordWidth = tempLabel->getContentSize().width;
-        tempLabel->cleanup(); // Cleanup tempLabel
-        tempLabel->release();  // Release tempLabel
+        tempLabel->cleanup();
+        tempLabel->release();
 
         if (lineWidth + wordWidth + buffer > maxWidth) {
             wrappedText << lineStream.str() << '\n';
