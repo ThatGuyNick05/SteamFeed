@@ -12,12 +12,9 @@ class $modify(MyMenuLayer, MenuLayer) {
         if (bottomMenu) {
             bottomMenu->addChild(CCMenuItemExt::createSpriteExtra(CircleButtonSprite::createWithSprite("steam_news_button.png"_spr, 1.0f,
                 CircleBaseColor::Green, CircleBaseSize::MediumAlt), [](auto) {
-                    // Add the functionality for the Steam News button click here
-                    geode::log::info("Steam Feed: Steam News Button clicked");
                     auto layer = SteamNewsLayer::create();
                     if (layer) {
-                        CCDirector::sharedDirector()->getRunningScene()->addChild(layer, 100); // Ensure it's on top
-                        geode::log::info("Steam Feed: SteamNewsLayer successfully created and added to scene");
+                        CCDirector::sharedDirector()->getRunningScene()->addChild(layer, 100); // Making sure it sits on top.
                     }
                     else {
                         geode::log::error("Steam Feed: Failed to create SteamNewsLayer");

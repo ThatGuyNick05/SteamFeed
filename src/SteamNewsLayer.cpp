@@ -15,10 +15,7 @@ using namespace rapidjson;
 using namespace geode::prelude;
 
 bool SteamNewsLayer::init() {
-    geode::log::info("Initializing SteamNewsLayer...");
-
     if (!FLAlertLayer::init(180)) {  // Initialized with opacity
-        geode::log::error("Failed to initialize FLAlertLayer");
         return false;
     }
 
@@ -35,9 +32,6 @@ bool SteamNewsLayer::init() {
         menu->setID("close-button-menu");
         menu->setPosition(CCPointZero);
         this->addChild(menu);
-    }
-    else {
-        geode::log::error("Failed to make the close button");
     }
 
     m_loadingSpinner = geode::LoadingSpinner::create(50.0f);
@@ -59,7 +53,7 @@ void SteamNewsLayer::closePopup(CCObject* sender) {
 }
 
 void SteamNewsLayer::fetchNewsItems() {
-    geode::log::info("Fetching the news items...");
+    geode::log::info("Fetching the SteamNews items...");
 
     std::string url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=322170&count=300";
 
@@ -68,7 +62,6 @@ void SteamNewsLayer::fetchNewsItems() {
         if (auto res = e->getValue()) {
             auto response = res->string().unwrapOr("");
             if (response.empty()) {
-                geode::log::error("Failed to fetch the news items");
                 return;
             }
 
@@ -78,12 +71,6 @@ void SteamNewsLayer::fetchNewsItems() {
 
                 createScrollView(newsItems);
                 });
-        }
-        else if (auto progress = e->getProgress()) {
-            geode::log::info("Fetching in progress...");
-        }
-        else if (e->isCancelled()) {
-            geode::log::info("Fetching was cancelled/failed.");
         }
         });
 
@@ -144,8 +131,6 @@ std::vector<SteamNewsLayer::NewsItem> SteamNewsLayer::parseNewsItems(const std::
 }
 
 void SteamNewsLayer::createScrollView(const std::vector<NewsItem>& newsItems) {
-    geode::log::info("Creating scroll view...");
-
     auto scrollLayer = CCLayer::create();
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
