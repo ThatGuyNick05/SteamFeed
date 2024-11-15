@@ -1,10 +1,14 @@
 # Changelog
 
+## <cg>v1.0.0</c>
+* Standard Release.
+* Migration into Geode 4.0.0-beta.1
+
 ## <cg>v1.0.0 [Beta 6]</c>
 * Updated the close button to use the proper button animation.
 
 ## <cg>v1.0.0 [Beta 5]</c>
-* Migration into Geode 4.0.0.
+* Migration into Geode 4.0.0-alpha.1
 
 ## <cg>v1.0.0 [Beta 4]</c>
 * New mod logo design for cleaner look.
