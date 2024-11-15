@@ -1,7 +1,7 @@
 # Changelog
 
 ## <cg>v1.0.0</c>
-* Standard Release.
+* The Standard Release.
 * Migration into Geode 4.0.0-beta.1
 
 ## <cg>v1.0.0 [Beta 6]</c>
