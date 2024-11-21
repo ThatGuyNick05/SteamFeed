@@ -4,7 +4,7 @@ The Steam Feed mod integrates a button to view Steam's latest news directly in t
 
 ## About
 
-The Steam Activity Feed Mod is designed to fetch and displays the latest Steam news about Geometry Dash. It enhances the game's interface with a new main menu button, allowing players to easily view the latest updates without leaving the game.
+The Steam Activity Feed Mod is designed to fetch and display the latest Steam news about Geometry Dash. It enhances the game's interface with a new main menu button, allowing players to easily view the latest updates without leaving the game.
 
 ## Credit
 
