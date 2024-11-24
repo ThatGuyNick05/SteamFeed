@@ -1,5 +1,10 @@
 # Changelog
 
+## <cg>v1.1.0</c>
+* Updated the Interface to contain cleaner button locations.
+* Added new side-layer to make for cleaner seperation.
+* Added Back to Top button for better user-friendly scrolling.
+
 ## <cg>v1.0.1</c>
 * Migration into Geode 4.0.1
 

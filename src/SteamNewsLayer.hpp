@@ -15,6 +15,7 @@ public:
     virtual bool init() override;
     void closePopup(cocos2d::CCObject* sender);
     void fetchNewsItems();
+    void scrollToTop(CCObject* sender);
 
     struct NewsItem {
         std::string gid;
@@ -37,6 +38,7 @@ private:
 
     geode::EventListener<geode::utils::web::WebTask> m_listener;
     geode::LoadingSpinner* m_loadingSpinner;
+    cocos2d::extension::CCScrollView* m_scrollView = nullptr;  // for tracking the scroll view currently
 
     virtual void scrollViewDidScroll(cocos2d::extension::CCScrollView* view) override {}
     virtual void scrollViewDidZoom(cocos2d::extension::CCScrollView* view) override {}

@@ -15,32 +15,56 @@ using namespace rapidjson;
 using namespace geode::prelude;
 
 bool SteamNewsLayer::init() {
-    if (!FLAlertLayer::init(180)) {  // Initialized with opacity
+    if (!FLAlertLayer::init(180)) { // Initialized with half opacity
         return false;
     }
 
     this->setContentSize(CCDirector::sharedDirector()->getWinSize());
     this->setTouchEnabled(true);
 
+    // Side-overlay for the new button area
+    auto overlayWidth = 60.0f;
+    auto overlayHeight = this->getContentSize().height;
+    auto buttonOverlay = CCLayerColor::create(ccc4(0, 0, 0, 128), overlayWidth, overlayHeight);
+    buttonOverlay->setPosition(ccp(0, 0));
+    this->addChild(buttonOverlay, 5);
+
+    // the close button setup
     auto closeBtnSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
     auto closeBtn = CCMenuItemSpriteExtra::create(closeBtnSprite, closeBtnSprite, this, menu_selector(SteamNewsLayer::closePopup));
     if (closeBtn) {
-        // The needed osition for the close button
-        closeBtn->setPosition(ccp(50, this->getContentSize().height - 50));
+        closeBtn->setPosition(ccp(30, this->getContentSize().height - 120));
 
         auto menu = CCMenu::create(closeBtn, nullptr);
         menu->setID("close-button-menu");
         menu->setPosition(CCPointZero);
-        this->addChild(menu);
+        this->addChild(menu, 15);
     }
 
+    // the loading spinner setup
     m_loadingSpinner = geode::LoadingSpinner::create(50.0f);
+    CC_SAFE_RETAIN(m_loadingSpinner);
     m_loadingSpinner->setPosition(this->getContentSize() / 2);
-    this->addChild(m_loadingSpinner);
+    this->addChild(m_loadingSpinner, 15);
+
+    // the back-to-top arrow button setup
+    auto upArrowSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+    upArrowSprite->setRotation(90.0f);
+    auto upArrowBtn = CCMenuItemSpriteExtra::create(upArrowSprite, upArrowSprite, this, menu_selector(SteamNewsLayer::scrollToTop));
+    upArrowBtn->setPosition(ccp(30, this->getContentSize().height - 190));
+
+    auto upArrowMenu = CCMenu::create(upArrowBtn, nullptr);
+    upArrowMenu->setPosition(CCPointZero);
+    this->addChild(upArrowMenu, 15);
 
     fetchNewsItems();
-
     return true;
+}
+
+void SteamNewsLayer::scrollToTop(CCObject* sender) {
+    if (m_scrollView) {
+        m_scrollView->setContentOffset(ccp(0, m_scrollView->getViewSize().height - m_scrollView->getContentSize().height), true);
+    }
 }
 
 void SteamNewsLayer::registerWithTouchDispatcher() {
@@ -49,6 +73,7 @@ void SteamNewsLayer::registerWithTouchDispatcher() {
 }
 
 void SteamNewsLayer::closePopup(CCObject* sender) {
+    this->removeAllChildrenWithCleanup(true);
     this->removeFromParentAndCleanup(true);
 }
 
@@ -67,8 +92,7 @@ void SteamNewsLayer::fetchNewsItems() {
 
             auto newsItems = parseNewsItems(response);
             Loader::get()->queueInMainThread([this, newsItems]() {
-                this->removeChild(m_loadingSpinner, true); // Take away the loading spinner
-
+                this->removeChild(m_loadingSpinner, true); // removing the loading spinner
                 createScrollView(newsItems);
                 });
         }
@@ -90,7 +114,7 @@ std::vector<SteamNewsLayer::NewsItem> SteamNewsLayer::parseNewsItems(const std::
         for (auto& newsItem : newsItemsArray.GetArray()) {
             NewsItem item;
             std::string gid = newsItem["gid"].GetString();
-            // Skip duplicate articles based on gid
+            // skipping duplicate articles based on the gid
             static const std::set<std::string> skipGids = {
                 "5410576585124650573", "2436926440562370340", "2284879949508460627",
                 "2163281492537211231", "2152021858901922963", "2152021858894636598",
@@ -109,7 +133,7 @@ std::vector<SteamNewsLayer::NewsItem> SteamNewsLayer::parseNewsItems(const std::
             item.title = newsItem["title"].GetString();
             item.content = removeUnwantedParts(newsItem["contents"].GetString(), gid);
 
-            // Convert date format to readable date
+            // converting the current date format to readable date
             if (newsItem.HasMember("date")) {
                 time_t rawTime = newsItem["date"].GetInt64();
                 struct tm* timeInfo = localtime(&rawTime);
@@ -139,35 +163,22 @@ void SteamNewsLayer::createScrollView(const std::vector<NewsItem>& newsItems) {
         auto newsItem = createNewsItem(item.title, item.content, item.date);
         if (newsItem) {
             size_t newlineCount = std::count(item.content.begin(), item.content.end(), '\n');
-            float spacing;
-            if (newlineCount >= 10) {
-                spacing = 80;
-            }
-            else if (newlineCount >= 5) {
-                spacing = 80;
-            }
-            else if (newlineCount >= 2) {
-                spacing = 40;
-            }
-            else {
-                spacing = 40;
-            }
+            float spacing = newlineCount >= 5 ? 80 : 40;
             newsItem->setPosition(ccp(40, totalHeight));
-            totalHeight += newsItem->getContentSize().height + spacing; // The adjustable spacing between each item
+            totalHeight += newsItem->getContentSize().height + spacing;
             scrollLayer->addChild(newsItem);
         }
     }
 
     scrollLayer->setContentSize(CCSizeMake(winSize.width, totalHeight));
 
-    auto scrollView = cocos2d::extension::CCScrollView::create(winSize, scrollLayer);
-    scrollView->setDirection(cocos2d::extension::kCCScrollViewDirectionVertical);
-    scrollView->setPosition(CCPointZero);
-    scrollView->setContentOffset(ccp(0, winSize.height - totalHeight));
-    scrollView->setTouchEnabled(true);
-    scrollView->setDelegate(this);
+    m_scrollView = cocos2d::extension::CCScrollView::create(winSize, scrollLayer);
+    m_scrollView->setDirection(cocos2d::extension::kCCScrollViewDirectionVertical);
+    m_scrollView->setPosition(CCPointZero);
+    m_scrollView->setContentOffset(ccp(0, winSize.height - totalHeight));
+    m_scrollView->setTouchEnabled(true);
 
-    this->addChild(scrollView);
+    this->addChild(m_scrollView);
 }
 
 CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::string& content, const std::string& date) {
@@ -198,7 +209,7 @@ CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::stri
         shadowTitleLabel->setColor(ccc3(0, 0, 0));
         shadowTitleLabel->setOpacity(100);
 
-        node->addChild(shadowTitleLabel, -1); // Place the shadow behind the title
+        node->addChild(shadowTitleLabel, -1); // Placing the shadow behind the title
         node->addChild(titleLabel);
     }
 
@@ -221,14 +232,14 @@ CCNode* SteamNewsLayer::createNewsItem(const std::string& title, const std::stri
         shadowDateLabel->setColor(ccc3(0, 0, 0));
         shadowDateLabel->setOpacity(100);
 
-        node->addChild(shadowDateLabel, -1); // Put the shadow behind given date
+        node->addChild(shadowDateLabel, -1); // Put the shadow behind the given date
         node->addChild(dateLabel);
     }
 
     // Adjustment for the content position based on the line count inside each title and date
     size_t titleLines = std::count(wrappedTitle.begin(), wrappedTitle.end(), '\n') + 1;
     float contentYOffset = 80 + (titleLines - 1) * 20;
-    contentYOffset -= 20; // For maintaining the given original position
+    contentYOffset -= 20; // To maintain their original position
 
     // Make the Content label with drop shadow
     auto contentLabel = CCLabelBMFont::create(content.c_str(), "chatFont.fnt", width, kCCTextAlignmentLeft);
